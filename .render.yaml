@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: telegram-webhook
+    name: telegram_bot
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn app:app
     envVars:
       - key: BOT_TOKEN
-        value: your_telegram_bot_token
+        value: 7294714166:AAFK1WNxkPJoUVzMpL5jiJ98ApvVPGvlbzk
       - key: ADMIN_CHAT_ID
-        value: your_admin_chat_id
+        value: 731634508
