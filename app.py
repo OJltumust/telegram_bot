@@ -4,6 +4,9 @@ import json
 import openpyxl
 from io import BytesIO
 import dropbox
+import base64
+import requests
+import json
 
 app = Flask(__name__)
 
@@ -13,37 +16,40 @@ ADMIN_CHAT_ID = "731634508"
 WEBHOOK_URL = "https://telegram-bot-flsb.onrender.com/webhook"  # установить при запуске
 
 # Dropbox config
-DROPBOX_REFRESH_TOKEN = "..."
+DROPBOX_REFRESH_TOKEN = "sjcdNshPfKEAAAAAAAAAAdXjVoN5r2jLr2k2z7HRfFQLrUBgMiQYMY1XUX8vqnMG"
 DROPBOX_CLIENT_ID = "m7hgidj0oux4sbi"
 DROPBOX_CLIENT_SECRET = "gnxkj5zh1b0mvfu"
 APP_FOLDER = "/BeautyBar"
 
 
-def get_access_token():
+def refresh_access_token():
     url = "https://api.dropboxapi.com/oauth2/token"
+    headers = {
+        "Authorization": "Basic " + base64.b64encode(f"{DROPBOX_CLIENT_ID}:{DROPBOX_CLIENT_SECRET}".encode()).decode(),
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
     data = {
         "grant_type": "refresh_token",
         "refresh_token": DROPBOX_REFRESH_TOKEN,
     }
-    auth = (DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET)
-    response = requests.post(url, data=data, auth=auth)
 
+    response = requests.post(url, headers=headers, data=data)
     if response.status_code == 200:
-        json_data = response.json()
-        return json_data["access_token"]
+        token = response.json().get("access_token")
+        return token
     else:
         print("❌ Failed to refresh Dropbox token:")
         print("Status code:", response.status_code)
         print("Response:", response.text)
         return None
 
-
 def get_dropbox_client():
-    access_token = get_access_token()
-    if not access_token:
-        raise RuntimeError("❌ access_token is None — проверь refresh_token, client_id или secret.")
-    return dropbox.Dropbox(access_token)
-
+    from dropbox import Dropbox
+    token = refresh_access_token()
+    if token:
+        return Dropbox(token)
+    else:
+        raise Exception("❌ access_token is None — проверь refresh_token, client_id или secret.")
 def update_balance(phone, amount):
     dbx = get_dropbox_client()
     path = f"{APP_FOLDER}/{phone}/{phone}_appointment.xlsx"
