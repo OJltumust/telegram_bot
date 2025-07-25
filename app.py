@@ -27,13 +27,22 @@ def get_access_token():
     }
     auth = (DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET)
     response = requests.post(url, data=data, auth=auth)
-    return response.json()["access_token"]
+
+    if response.status_code == 200:
+        json_data = response.json()
+        return json_data["access_token"]
+    else:
+        print("❌ Failed to refresh Dropbox token:")
+        print("Status code:", response.status_code)
+        print("Response:", response.text)
+        return None
 
 
 def get_dropbox_client():
     access_token = get_access_token()
+    if not access_token:
+        raise RuntimeError("❌ access_token is None — проверь refresh_token, client_id или secret.")
     return dropbox.Dropbox(access_token)
-
 
 def update_balance(phone, amount):
     dbx = get_dropbox_client()
