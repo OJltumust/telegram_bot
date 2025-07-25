@@ -94,33 +94,32 @@ def telegram_webhook():
     print("🔔 Webhook received:", json.dumps(data, indent=2))
 
     if "callback_query" in data:
-        try:
-            query = data["callback_query"]
-            print("🔘 Callback query:", query)
-            print("📦 callback_data (raw):", query["data"])
+    try:
+        query = data["callback_query"]
+        print("🔘 Callback query:", query)
+        print("📦 callback_data (raw):", query["data"])
 
-            # Это уже JSON-строка, просто загружаем
-            user_data = json.loads(query["data"])
+        parts = query["data"].split("|")
+        if len(parts) == 3 and parts[0] == "confirm":
+            action, phone, amount = parts
+            print(f"📥 Подтверждено пополнение: {phone}, {amount}")
 
-            if user_data.get("action") == "confirm":
-                phone = user_data.get("phone")
-                amount = user_data.get("amount")
-                print(f"📥 Подтверждено пополнение: {phone}, {amount}")
+            update_balance(phone, amount)
 
-                update_balance(phone, amount)
+            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
+                "chat_id": query["from"]["id"],
+                "text": f"✅ Баланс подтверждён для {phone}"
+            })
 
-                requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
-                    "chat_id": query["from"]["id"],
-                    "text": f"✅ Баланс подтверждён для {phone}"
-                })
-
-                requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery", json={
-                    "callback_query_id": query["id"],
-                    "text": "Баланс подтверждён"
-                })
-        except Exception as e:
-            print("❌ Ошибка обработки callback:", str(e))
-
+            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery", json={
+                "callback_query_id": query["id"],
+                "text": "Баланс подтверждён"
+            })
+        else:
+            print(f"⚠️ Неверный формат callback_data: {query['data']}")
+    except Exception as e:
+        print("❌ Ошибка обработки callback:", str(e))   
+        
     return "OK"
 
 
