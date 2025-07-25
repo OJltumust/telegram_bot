@@ -57,28 +57,43 @@ def update_balance(phone, amount):
 @app.route("/webhook", methods=["POST"])
 def telegram_webhook():
     data = request.json
-    print("🔔 Webhook received:", data)
+    print("🔔 Webhook received:", json.dumps(data, indent=2))
 
-    # Нажата кнопка
     if "callback_query" in data:
-        query = data["callback_query"]
-        user_data = json.loads(query["data"])  # {"action": "confirm", "phone": "..."}
+        try:
+            query = data["callback_query"]
+            print("🔘 Callback query:", query)
+            callback_data = query["data"]
+            print("📦 callback_data (raw):", callback_data)
 
-        if user_data["action"] == "confirm":
-            phone = user_data["phone"]
-            amount = user_data["amount"]
-            update_balance(phone, amount)
+            # 🔧 Разделяем строку 'confirm||380999999999||10' на части
+            parts = callback_data.split("||")
+            if len(parts) == 3:
+                action, phone, amount = parts
 
-            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
-                "chat_id": query["from"]["id"],
-                "text": f"✅ Баланс подтверждён для {phone}"
-            })
+                if action == "confirm":
+                    print(f"📥 Подтверждено пополнение: {phone}, {amount}")
 
-            # Ответ Telegram API на кнопку
-            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery", json={
-                "callback_query_id": query["id"],
-                "text": "Баланс подтверждён"
-            })
+                    update_balance(phone, amount)  # 👈 функция обновления баланса
+
+                    # Уведомляем пользователя
+                    requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
+                        "chat_id": query["from"]["id"],
+                        "text": f"✅ Баланс подтверждён для {phone} на {amount} грн"
+                    })
+
+                    # Подтверждаем нажатие кнопки
+                    requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery", json={
+                        "callback_query_id": query["id"],
+                        "text": "Баланс подтверждён"
+                    })
+                else:
+                    print("⚠️ Неизвестное действие:", action)
+            else:
+                print("⚠️ Неверный формат callback_data:", callback_data)
+
+        except Exception as e:
+            print("❌ Ошибка обработки callback:", str(e))
 
     return "OK"
 
