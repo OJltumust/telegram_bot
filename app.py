@@ -99,9 +99,12 @@ def telegram_webhook():
             print("🔘 Callback query:", query)
             print("📦 callback_data (raw):", query["data"])
 
-            parts = query["data"].split("|")
-            if len(parts) == 3 and parts[0] == "confirm":
-                action, phone, amount = parts
+            # Это уже JSON-строка, просто загружаем
+            user_data = json.loads(query["data"])
+
+            if user_data.get("action") == "confirm":
+                phone = user_data.get("phone")
+                amount = user_data.get("amount")
                 print(f"📥 Подтверждено пополнение: {phone}, {amount}")
 
                 update_balance(phone, amount)
@@ -115,8 +118,6 @@ def telegram_webhook():
                     "callback_query_id": query["id"],
                     "text": "Баланс подтверждён"
                 })
-            else:
-                print(f"⚠️ Неверный формат callback_data: {query['data']}")
         except Exception as e:
             print("❌ Ошибка обработки callback:", str(e))
 
