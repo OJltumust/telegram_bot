@@ -59,14 +59,33 @@ def update_balance(phone, amount):
     workbook = openpyxl.load_workbook(BytesIO(res.content))
     sheet = workbook.active
 
-    # 2. Добавляем строку "Пополнение"
+    # 2. Прочитать текущий баланс из ячейки E1 (например)
+    current_balance_cell = sheet["E1"]
+    try:
+        current_balance = float(current_balance_cell.value)
+    except (TypeError, ValueError):
+        current_balance = 0.0
+
+    # 3. Добавить сумму пополнения
+    try:
+        amount_float = float(amount)
+    except ValueError:
+        amount_float = 0.0
+
+    new_balance = current_balance + amount_float
+
+    # 4. Записать обновлённый баланс обратно в ячейку E1
+    current_balance_cell.value = new_balance
+
+    # 5. (Опционально) Добавить запись о пополнении в новую строку
     sheet.append([f"Пополнение от Telegram", phone, f"{amount} грн"])
 
-    # 3. Сохраняем и загружаем обратно
+    # 6. Сохраняем и загружаем обратно в Dropbox
     bio = BytesIO()
     workbook.save(bio)
     bio.seek(0)
     dbx.files_upload(bio.read(), path, mode=dropbox.files.WriteMode.overwrite)
+
 
 
 @app.route("/webhook", methods=["POST"])
