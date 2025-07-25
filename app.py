@@ -52,7 +52,7 @@ def get_dropbox_client():
         raise Exception("❌ access_token is None — проверь refresh_token, client_id или secret.")
 def update_balance(phone, amount):
     dbx = get_dropbox_client()
-    path = f"{APP_FOLDER}/{phone}/{phone}_appointment.xlsx"
+    path = f"{APP_FOLDER}/{phone}/{phone}_appointments.xlsx"
 
     # 1. Скачиваем Excel
     _, res = dbx.files_download(path)
