@@ -14,8 +14,8 @@ WEBHOOK_URL = "https://telegram-bot-flsb.onrender.com/webhook"  # установ
 
 # Dropbox config
 DROPBOX_REFRESH_TOKEN = "..."
-DROPBOX_CLIENT_ID = "..."
-DROPBOX_CLIENT_SECRET = "..."
+DROPBOX_CLIENT_ID = "m7hgidj0oux4sbi"
+DROPBOX_CLIENT_SECRET = "gnxkj5zh1b0mvfu"
 APP_FOLDER = "/BeautyBar"
 
 
