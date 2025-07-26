@@ -99,11 +99,23 @@ def telegram_webhook():
             print("🔘 Callback query:", query)
             print("📦 callback_data (raw):", query["data"])
 
-            parts = query["data"].split("|")
-            if len(parts) == 3 and parts[0] == "confirm":
-                action, phone, amount = parts
-                print(f"📥 Подтверждено пополнение: {phone}, {amount}")
+            try:
+                # Попробуем разобрать как JSON
+                parsed = json.loads(query["data"])
+                action = parsed.get("action")
+                phone = parsed.get("phone")
+                amount = parsed.get("amount")
+            except json.JSONDecodeError:
+                # Если не JSON — пробуем split
+                parts = query["data"].split("|")
+                if len(parts) == 3:
+                    action, phone, amount = parts
+                else:
+                    print(f"⚠️ Неверный формат callback_data: {query['data']}")
+                    return "OK"
 
+            if action == "confirm":
+                print(f"📥 Подтверждено пополнение: {phone}, {amount}")
                 update_balance(phone, amount)
 
                 requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
@@ -116,7 +128,8 @@ def telegram_webhook():
                     "text": "Баланс подтверждён"
                 })
             else:
-                print(f"⚠️ Неверный формат callback_data: {query['data']}")
+                print(f"⚠️ Неизвестное действие: {action}")
+
         except Exception as e:
             print("❌ Ошибка обработки callback:", str(e))
     return "OK"
