@@ -96,29 +96,29 @@ def telegram_webhook():
     if "callback_query" in data:
         try:
             query = data["callback_query"]
-        print("🔘 Callback query:", query)
-        print("📦 callback_data (raw):", query["data"])
+            print("🔘 Callback query:", query)
+            print("📦 callback_data (raw):", query["data"])
 
-        parts = query["data"].split("|")
-        if len(parts) == 3 and parts[0] == "confirm":
-            action, phone, amount = parts
-            print(f"📥 Подтверждено пополнение: {phone}, {amount}")
+            parts = query["data"].split("|")
+            if len(parts) == 3 and parts[0] == "confirm":
+                action, phone, amount = parts
+                print(f"📥 Подтверждено пополнение: {phone}, {amount}")
 
-            update_balance(phone, amount)
+                update_balance(phone, amount)
 
-            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
-                "chat_id": query["from"]["id"],
-                "text": f"✅ Баланс подтверждён для {phone}"
-            })
+                requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={
+                    "chat_id": query["from"]["id"],
+                    "text": f"✅ Баланс подтверждён для {phone}"
+                })
 
-            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery", json={
-                "callback_query_id": query["id"],
-                "text": "Баланс подтверждён"
-            })
-        else:
-            print(f"⚠️ Неверный формат callback_data: {query['data']}")
-    except Exception as e:
-        print("❌ Ошибка обработки callback:", str(e))
+                requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery", json={
+                    "callback_query_id": query["id"],
+                    "text": "Баланс подтверждён"
+                })
+            else:
+                print(f"⚠️ Неверный формат callback_data: {query['data']}")
+        except Exception as e:
+            print("❌ Ошибка обработки callback:", str(e))
     return "OK"
 
 
