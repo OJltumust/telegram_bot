@@ -94,7 +94,7 @@ def telegram_webhook():
     print("🔔 Webhook received:", json.dumps(data, indent=2))
 
     if "callback_query" in data:
-    try:
+        try:
         query = data["callback_query"]
         print("🔘 Callback query:", query)
         print("📦 callback_data (raw):", query["data"])
