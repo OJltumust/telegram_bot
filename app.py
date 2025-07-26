@@ -118,8 +118,7 @@ def telegram_webhook():
         else:
             print(f"⚠️ Неверный формат callback_data: {query['data']}")
     except Exception as e:
-        print("❌ Ошибка обработки callback:", str(e))   
-        
+        print("❌ Ошибка обработки callback:", str(e))
     return "OK"
 
 
